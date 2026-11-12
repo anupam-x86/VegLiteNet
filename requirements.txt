@@ -1,0 +1,8 @@
+Package         Version
+--------------- -------
+numpy           2.5.4
+pandas          3.1.1
+pillow          13.0.0
+pip             26.3
+python-dateutil 4.0.0
+tzdata          2026.6

@@ -1,0 +1,26 @@
+# Datasets
+data/raw/*
+!data/raw/.gitkeep
+data/train/*
+!data/train/.gitkeep
+data/val/*
+!data/val/.gitkeep
+data/test/*
+!data/test/.gitkeep
+
+# Model checkpoints & outputs
+results/figures/*
+!results/figures/.gitkeep
+results/tables/*
+!results/tables/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors
+.vscode/
