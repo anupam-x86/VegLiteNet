@@ -56,7 +56,10 @@ VegLiteNet/
 │   └── test/                        # Prepared test split [planned]
 │
 ├── src/
-│   └── __init__.py                  # Source package
+│   ├── __init__.py                  # Source package
+│   └── data/
+│       ├── dataset_inspector.py     # Dataset inspection [implemented]
+│       └── __init__.py
 │
 ├── models/
 │   ├── baseline.py                  # Baseline CNN [planned]

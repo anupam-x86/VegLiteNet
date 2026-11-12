@@ -24,3 +24,6 @@ __pycache__/
 
 # Editors
 .vscode/
+
+# test files
+test.py
