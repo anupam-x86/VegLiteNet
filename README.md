@@ -108,6 +108,13 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+**Future Improvements [Currently Unplanned]**
+
+- **Perceptual duplicate detection:** Explore perceptual hashing (pHash) to identify visually similar images that exact hash-based detection (SHA-256) cannot detect.
+- **Advanced leakage analysis:** Investigate image-similarity techniques to identify potential overlap between dataset splits, including resized, compressed, or augmented versions of the same source image.
+
+These techniques are optional future enhancements and are not currently implemented.
+
 ## Author
 
 **Anupam Mishra**  
