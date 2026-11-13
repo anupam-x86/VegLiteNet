@@ -60,7 +60,7 @@ class DatasetInspector:
             return True
         except (IOError, SyntaxError, UnidentifiedImageError):
             return False
-    
+
     def _count_images(self, class_directory):
         """Count valid images and identify corrupted files."""
         valid_image_count = 0
@@ -82,7 +82,7 @@ class DatasetInspector:
             file_hash = hashlib.sha256(image.read()).hexdigest()
         return file_hash
 
-    def _find_duplicate_images(self):
+    def find_duplicate_images(self):
         image_hashes = {}
 
         if not self.dataset_structure:
@@ -94,7 +94,8 @@ class DatasetInspector:
                     for file_path in sorted(class_directory.iterdir()):
                         if file_path.is_file() and file_path.suffix.lower() in self.image_extensions and self._verify_image(file_path):
                             file_hash = self._calculate_image_hash(file_path)
-                            image_hashes.setdefault(file_hash,[]).append(file_path)
+                            image_hashes.setdefault(file_hash,[]).append(str(file_path))
+
         duplicate_image_hashes = {
             file_hash: file_paths
             for file_hash, file_paths in image_hashes.items()
@@ -111,13 +112,13 @@ class DatasetInspector:
             } 
         return image_properties
 
-    def _analyze_images_properties(self):
+    def analyze_images_properties(self):
         sizes = []
         formats = []
         modes = []
         if not self.dataset_structure:
             self._build_dataset_structure()
-        
+
         for dataset_splits in self.dataset_structure.values():
             for class_directories in dataset_splits.values():
                 for class_directory in sorted(class_directories):
@@ -127,68 +128,57 @@ class DatasetInspector:
                             sizes.append(properties['size'])
                             formats.append(properties['format'])
                             modes.append(properties['mode'])
+
         size_counts = Counter(sizes)  
         format_counts = Counter(formats)  
         mode_counts = Counter(modes)  
         return {"sizes": size_counts, "formats": format_counts, "modes": mode_counts}
-                
-    def _display_dataset_statistics(self):
-        """Display image counts for every dataset split and class."""
 
+    def dataset_statistics(self):
+        """Return image counts for every dataset split and class."""
+
+        statistics = {
+            "datasets": {},
+            "total_valid_images": 0,
+            "total_corrupted_images": 0
+        }
+        self._build_dataset_structure()
+        
+        if not self.dataset_structure:
+            return {}
 
         for dataset_name, dataset_splits in self.dataset_structure.items():
-            
-            total_valid_images = 0
-            total_corrupted_images = 0
-        
-            all_corrupted_images = []
 
-            print(f"Dataset: {dataset_name}")
-            print(f"Number of splits: {len(dataset_splits)}")
+            statistics["datasets"].setdefault(dataset_name,{})
+            
+            statistics["datasets"][dataset_name]["total_valid_images"] = 0
+            statistics["datasets"][dataset_name]["total_corrupted_images"] = 0
 
             for split_name, class_directories in dataset_splits.items():
 
-                print(f"\nSplit: {split_name}")
-                print(f"Number of classes: {len(class_directories)}")
-
                 split_valid_images = 0
                 split_corrupted_images = 0
-                            
+                statistics["datasets"][dataset_name].setdefault(split_name,{"classes": {}})
+
                 for class_directory in class_directories:
 
                     valid_image_count,corrupted_images = self._count_images(class_directory)
-                    
+
                     split_valid_images += valid_image_count
                     split_corrupted_images += len(corrupted_images)
 
-                    all_corrupted_images.extend(corrupted_images)
-                    print(f"Class: {class_directory.name}: \n Valid = {valid_image_count}, \n Corrupted = {len(corrupted_images)}\n")
+                    statistics["datasets"][dataset_name][split_name]["classes"][class_directory.name] = {
+                            "valid_images_count": valid_image_count,
+                            "corrupted_images_count": len(corrupted_images),
+                            "corrupted_images": corrupted_images
+                        }
 
-                total_valid_images += split_valid_images
-                total_corrupted_images += split_corrupted_images
+                statistics["datasets"][dataset_name][split_name]["split_valid"] = split_valid_images
+                statistics["datasets"][dataset_name][split_name]["split_invalid"] = split_corrupted_images
 
-                print(f"Total Valid images in {split_name}: {split_valid_images}")
-                print(f"Total Corrupted images in {split_name}: {split_corrupted_images}\n")
-            
-            if all_corrupted_images:
-                print("Corrupted files:\n")
-                for file_path in all_corrupted_images:
-                    print(file_path)
-            else:
-                print("No corrupted images found.\n")
+                statistics["datasets"][dataset_name]["total_valid_images"] += split_valid_images
+                statistics["datasets"][dataset_name]["total_corrupted_images"] += split_corrupted_images
 
-            print(f"Total Valid images in {dataset_name}: {total_valid_images}")
-            print(f"Total Corrupted images in {dataset_name}: {total_corrupted_images}\n")
-
-            print("-" * 50)
-
-
-    def inspect_dataset(self):
-        """Run the complete dataset inspection pipeline."""
-
-        self._build_dataset_structure()
-
-        if not self.dataset_structure:
-            print(f"No valid dataset splits found.\nExpected split names: {self.split_names}")
-            return 
-        self._display_dataset_statistics()
+                statistics["total_valid_images"] += split_valid_images
+                statistics["total_corrupted_images"] += split_corrupted_images
+        return statistics
